@@ -1,4 +1,4 @@
-import { Game } from './core/Game.js';
+import { Game } from '/src/core/Game.js';
 
 // Instantiate the game engine
 const game = new Game();
