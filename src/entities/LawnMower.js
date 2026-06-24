@@ -12,10 +12,10 @@ export class LawnMower {
         );
         body.castShadow = true;
         this.mesh.add(body);
-
         this.createHandle();
 
-        this.sound = new Audio('/sounds/mower.mp3');
+        // Ensure this points to public/sounds/mower.mp3
+        this.sound = new Audio('./sounds/mower.mp3');
         this.sound.loop = true;
         this.isMoving = false;
         this.mesh.position.copy(this.position);
@@ -32,11 +32,6 @@ export class LawnMower {
         grip.position.set(0, 1.2, -0.75);
         grip.rotation.z = Math.PI / 2;
         this.mesh.add(grip);
-
-        const strut = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.45), handleMat);
-        strut.position.set(0, 1.0, -0.55);
-        strut.rotation.x = -Math.PI / 4;
-        this.mesh.add(strut);
     }
 
     update(delta, input) {
@@ -53,7 +48,7 @@ export class LawnMower {
             const targetRotation = Math.atan2(direction.x, direction.y);
             this.mesh.rotation.y += (targetRotation - this.mesh.rotation.y) * 0.2;
             if (!this.isMoving) {
-                this.sound.play().catch(e => console.log("Audio requires interaction"));
+                this.sound.play().catch(e => console.log("Mower audio pending..."));
                 this.isMoving = true;
             }
         } else {
@@ -65,7 +60,6 @@ export class LawnMower {
     stop() {
         if (this.isMoving) {
             this.sound.pause();
-            this.sound.currentTime = 0;
             this.isMoving = false;
         }
     }

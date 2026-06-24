@@ -23,18 +23,18 @@ export class Game {
         this.mower = new LawnMower();
         this.isNight = false;
 
-        // --- Three.js Audio System ---
         this.listener = new THREE.AudioListener();
         this.camera.instance.add(this.listener);
         this.bgMusic = new THREE.Audio(this.listener);
 
         const audioLoader = new THREE.AudioLoader();
-        audioLoader.load('/background-music.mp3', (buffer) => {
+        // Use relative path so it respects your base config
+        audioLoader.load('./background-music.mp3', (buffer) => {
             this.bgMusic.setBuffer(buffer);
             this.bgMusic.setLoop(true);
             this.bgMusic.setVolume(0.3);
         }, undefined, (err) => {
-            console.error("Audio Loading Error: Could not find /background-music.mp3", err);
+            console.error("Audio Loading Error: Check if background-music.mp3 is in public folder", err);
         });
 
         this.joystick = createJoystick();
@@ -46,7 +46,6 @@ export class Game {
         this.lastTime = 0;
         this.update = this.update.bind(this);
 
-        // Interaction listener to start audio
         document.addEventListener('click', () => {
             if (this.bgMusic && !this.bgMusic.isPlaying) {
                 this.bgMusic.play();
