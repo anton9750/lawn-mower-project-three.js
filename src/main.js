@@ -1,3 +1,6 @@
+// Import the global styles to ensure the joystick and layout are positioned correctly
+import './style.css';
+
 import { Game } from '/src/core/Game.js';
 
 // Instantiate the game engine

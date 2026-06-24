@@ -1,0 +1,50 @@
+/* src/style.css */
+
+/* Reset default browser margins and hide scrollbars */
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Prevents scrollbars when game content expands */
+    background-color: #000; /* Standard black background for 3D games */
+}
+
+/* Ensure your game canvas takes up the full browser window */
+canvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* Position the joystick container for nipplejs */
+#joystick-zone {
+    position: absolute !important;
+    bottom: 20px;
+    left: 20px;
+    width: 150px;
+    height: 150px;
+    z-index: 1000;
+    /* Allows click events to pass through the zone div to the game canvas */
+    pointer-events: none; 
+}
+
+/* Ensure the joystick itself is interactive */
+.nipple.collection {
+    pointer-events: auto !important;
+}
+
+/* Style for the "Next Stage" button */
+#next-btn {
+    font-family: sans-serif;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+#next-btn:hover {
+    background-color: #45a049;
+}
