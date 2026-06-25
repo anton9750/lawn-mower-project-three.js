@@ -15,6 +15,7 @@ import { Tree } from '../entities/Tree.js';
 import { createJoystick } from '../Controls.js';
 import { CoinSystem } from '../systems/CoinSystem.js';
 import { Shop } from '../ui/Shop.js';
+import { WeatherSystem } from '../systems/WeatherSystem.js';
 
 export class Game {
     constructor() {
@@ -29,7 +30,9 @@ export class Game {
         this.coinSystem = new CoinSystem();
         this.hud = new HUD();
         
-        // Shop initialization with traverse to color all mower parts
+        // Initialize WeatherSystem with scene and camera instance
+        this.weather = new WeatherSystem(this.sceneManager.scene, this.camera.instance);
+        
         this.shop = new Shop(this, (hex) => {
             if (this.mower.mesh) {
                 this.mower.mesh.traverse((child) => {
@@ -50,7 +53,7 @@ export class Game {
             this.bgMusic.setLoop(true);
             this.bgMusic.setVolume(0.3);
         }, undefined, (err) => {
-            console.error("Audio Loading Error: Check if background-music.mp3 is in public folder", err);
+            console.error("Audio Loading Error", err);
         });
 
         this.joystick = createJoystick();
@@ -71,8 +74,18 @@ export class Game {
 
     setupStage() {
         this.sceneManager.clear();
+        this.weather.clear(); 
+        
         this.isNight = !this.isNight;
         this.sceneManager.setTheme(this.isNight);
+        
+        // Setup Weather
+        if (this.isNight) {
+            this.weather.addMoon();
+            this.weather.addRain();
+        } else {
+            this.weather.addClouds();
+        }
         
         const size = Math.floor(Math.random() * 6) + 15;
         const treeCount = Math.floor(Math.random() * 6) + 5;
@@ -99,7 +112,6 @@ export class Game {
         this.sceneManager.add(this.mower.mesh);
         this.trees.forEach(t => this.sceneManager.add(t.group));
 
-        // Create Shop button if at least 1 stage is completed
         if (this.coinSystem.stagesCompleted >= 1 && !document.getElementById('shop-btn')) {
             const shopBtn = document.createElement('button');
             shopBtn.id = 'shop-btn';
@@ -111,7 +123,6 @@ export class Game {
 
     endGame() {
         if (document.getElementById('next-btn')) return;
-        
         this.gameState.isGameOver = true;
         this.coinSystem.addCoins(100);
         this.coinSystem.incrementStages();
@@ -126,7 +137,6 @@ export class Game {
         btn.style.padding = "20px 40px";
         btn.style.fontSize = "24px";
         btn.style.zIndex = "10000";
-        
         btn.onclick = () => {
             btn.remove();
             this.setupStage();
@@ -146,14 +156,12 @@ export class Game {
         this.lastTime = time;
         
         if (!this.gameState.isGameOver) {
+            this.weather.update(delta);
             this.mower.update(delta, this.input);
             this.collisionSystem.constrain(this.mower.position);
             this.grassCuttingSystem.update(this.mower.position);
             this.scoreSystem.update();
-            
-            // Pass the coins to the HUD update
             this.hud.update(this.scoreSystem.getPercentage(), this.coinSystem.coins);
-            
             this.gameState.update();
             if (this.gameState.isGameOver) this.endGame();
         } else {
