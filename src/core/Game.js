@@ -13,6 +13,8 @@ import { CollisionSystem } from '../systems/CollisionSystem.js';
 import { GameStateManager } from '../systems/GameStateManager.js';
 import { Tree } from '../entities/Tree.js';
 import { createJoystick } from '../Controls.js';
+import { CoinSystem } from '../systems/CoinSystem.js';
+import { Shop } from '../ui/Shop.js';
 
 export class Game {
     constructor() {
@@ -23,12 +25,26 @@ export class Game {
         this.mower = new LawnMower();
         this.isNight = false;
 
+        // Initialize Systems
+        this.coinSystem = new CoinSystem();
+        this.hud = new HUD();
+        
+        // Shop initialization with traverse to color all mower parts
+        this.shop = new Shop(this, (hex) => {
+            if (this.mower.mesh) {
+                this.mower.mesh.traverse((child) => {
+                    if (child.isMesh) {
+                        child.material.color.setHex(hex);
+                    }
+                });
+            }
+        });
+
         this.listener = new THREE.AudioListener();
         this.camera.instance.add(this.listener);
         this.bgMusic = new THREE.Audio(this.listener);
 
         const audioLoader = new THREE.AudioLoader();
-        // Use relative path so it respects your base config
         audioLoader.load('./background-music.mp3', (buffer) => {
             this.bgMusic.setBuffer(buffer);
             this.bgMusic.setLoop(true);
@@ -57,16 +73,19 @@ export class Game {
         this.sceneManager.clear();
         this.isNight = !this.isNight;
         this.sceneManager.setTheme(this.isNight);
+        
         const size = Math.floor(Math.random() * 6) + 15;
         const treeCount = Math.floor(Math.random() * 6) + 5;
         this.trees = [];
         const treePositions = [];
+        
         for (let i = 0; i < treeCount; i++) {
             const x = (Math.random() - 0.5) * (size - 2);
             const z = (Math.random() - 0.5) * (size - 2);
             treePositions.push({ x, z });
             this.trees.push(new Tree(x, z));
         }
+
         this.lawn = new Lawn(size, size, treePositions);
         this.lawn.init();
         this.fence = new Fence(size);
@@ -74,16 +93,29 @@ export class Game {
         this.scoreSystem = new ScoreSystem(this.lawn);
         this.collisionSystem = new CollisionSystem(this.lawn, this.trees, this.fence);
         this.gameState = new GameStateManager(this.lawn, this.scoreSystem);
-        this.hud = new HUD();
+
         this.sceneManager.add(this.lawn.group);
         this.sceneManager.add(this.fence.group);
         this.sceneManager.add(this.mower.mesh);
         this.trees.forEach(t => this.sceneManager.add(t.group));
+
+        // Create Shop button if at least 1 stage is completed
+        if (this.coinSystem.stagesCompleted >= 1 && !document.getElementById('shop-btn')) {
+            const shopBtn = document.createElement('button');
+            shopBtn.id = 'shop-btn';
+            shopBtn.innerText = 'SHOP';
+            shopBtn.onclick = () => this.shop.open();
+            document.body.appendChild(shopBtn);
+        }
     }
 
     endGame() {
         if (document.getElementById('next-btn')) return;
+        
         this.gameState.isGameOver = true;
+        this.coinSystem.addCoins(100);
+        this.coinSystem.incrementStages();
+
         const btn = document.createElement('button');
         btn.id = "next-btn";
         btn.innerText = "Next Stage";
@@ -94,6 +126,7 @@ export class Game {
         btn.style.padding = "20px 40px";
         btn.style.fontSize = "24px";
         btn.style.zIndex = "10000";
+        
         btn.onclick = () => {
             btn.remove();
             this.setupStage();
@@ -111,17 +144,22 @@ export class Game {
     update(time) {
         const delta = (time - this.lastTime) / 1000;
         this.lastTime = time;
+        
         if (!this.gameState.isGameOver) {
             this.mower.update(delta, this.input);
             this.collisionSystem.constrain(this.mower.position);
             this.grassCuttingSystem.update(this.mower.position);
             this.scoreSystem.update();
-            this.hud.update(this.scoreSystem.getPercentage());
+            
+            // Pass the coins to the HUD update
+            this.hud.update(this.scoreSystem.getPercentage(), this.coinSystem.coins);
+            
             this.gameState.update();
             if (this.gameState.isGameOver) this.endGame();
         } else {
             this.mower.stop();
         }
+        
         this.camera.update(this.mower.position);
         this.renderer.render(this.sceneManager.scene, this.camera.instance);
         requestAnimationFrame(this.update);

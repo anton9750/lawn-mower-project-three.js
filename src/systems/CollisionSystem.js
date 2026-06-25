@@ -41,3 +41,10 @@ export class CollisionSystem {
         position.add(dir.multiplyScalar(0.2)); 
     }
 }
+
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
+
+// Inside your collision function:
+async function triggerVibration() {
+    await Haptics.impact({ style: ImpactStyle.Medium });
+}

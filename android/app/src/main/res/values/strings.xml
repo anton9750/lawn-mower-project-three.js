@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Lawn Mower Game</string>
+    <string name="title_activity_main">Lawn Mower Game</string>
+    <string name="package_name">com.yourname.lawnmower</string>
+    <string name="custom_url_scheme">com.yourname.lawnmower</string>
+</resources>
