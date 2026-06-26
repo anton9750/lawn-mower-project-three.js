@@ -30,6 +30,7 @@ Massive Moon: Implemented as a large-scale SphereGeometry (radius 45) pinned to 
 Randomized Rain: Uses THREE.Points with per-particle velocity and randomized jitter to prevent the "looping" look common in simple particle systems.
 
 Camera Frustum: The camera's far clipping plane was extended to 3000 to allow for deep-space object rendering.
+<img width="1173" height="541" alt="image" src="https://github.com/user-attachments/assets/e513e819-dcfa-49e2-ab21-c7706bd74b5f" />
 
 📂 Project Structure
 Plaintext
