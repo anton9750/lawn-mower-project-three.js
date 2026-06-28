@@ -16,6 +16,7 @@ import { createJoystick } from '../Controls.js';
 import { CoinSystem } from '../systems/CoinSystem.js';
 import { Shop } from '../ui/Shop.js';
 import { WeatherSystem } from '../systems/WeatherSystem.js';
+import { StuckSystem } from '../systems/StuckSystem.js';
 
 export class Game {
     constructor() {
@@ -26,50 +27,42 @@ export class Game {
         this.mower = new LawnMower();
         this.isNight = false;
 
-        // Initialize Systems
+        // Systems
         this.coinSystem = new CoinSystem();
         this.hud = new HUD();
-        
-        // Initialize WeatherSystem with scene and camera instance
         this.weather = new WeatherSystem(this.sceneManager.scene, this.camera.instance);
+        
+        // Initialize StuckSystem with a reset callback
+        this.stuckSystem = new StuckSystem(this.mower, () => {
+            this.mower.position.set(0, 0, 0);
+        });
         
         this.shop = new Shop(this, (hex) => {
             if (this.mower.mesh) {
                 this.mower.mesh.traverse((child) => {
-                    if (child.isMesh) {
-                        child.material.color.setHex(hex);
-                    }
+                    if (child.isMesh) child.material.color.setHex(hex);
                 });
             }
         });
 
+        // Audio Setup
         this.listener = new THREE.AudioListener();
         this.camera.instance.add(this.listener);
         this.bgMusic = new THREE.Audio(this.listener);
-
         const audioLoader = new THREE.AudioLoader();
         audioLoader.load('./background-music.mp3', (buffer) => {
             this.bgMusic.setBuffer(buffer);
             this.bgMusic.setLoop(true);
             this.bgMusic.setVolume(0.3);
-        }, undefined, (err) => {
-            console.error("Audio Loading Error", err);
         });
 
         this.joystick = createJoystick();
-        this.joystick.on('move', (evt, data) => {
-            if (data?.vector) this.input.setJoystick(data.vector.x, data.vector.y);
-        });
+        this.joystick.on('move', (evt, data) => { if (data?.vector) this.input.setJoystick(data.vector.x, data.vector.y); });
         this.joystick.on('end', () => this.input.setJoystick(0, 0));
 
         this.lastTime = 0;
         this.update = this.update.bind(this);
-
-        document.addEventListener('click', () => {
-            if (this.bgMusic && !this.bgMusic.isPlaying) {
-                this.bgMusic.play();
-            }
-        }, { once: true });
+        document.addEventListener('click', () => { if (this.bgMusic && !this.bgMusic.isPlaying) this.bgMusic.play(); }, { once: true });
     }
 
     setupStage() {
@@ -79,7 +72,6 @@ export class Game {
         this.isNight = !this.isNight;
         this.sceneManager.setTheme(this.isNight);
         
-        // Setup Weather
         if (this.isNight) {
             this.weather.addMoon();
             this.weather.addRain();
@@ -156,7 +148,8 @@ export class Game {
         this.lastTime = time;
         
         if (!this.gameState.isGameOver) {
-            this.weather.update(delta);
+            this.stuckSystem.update(delta); // Stuck detection
+            this.weather.update(delta);     // Weather update
             this.mower.update(delta, this.input);
             this.collisionSystem.constrain(this.mower.position);
             this.grassCuttingSystem.update(this.mower.position);
