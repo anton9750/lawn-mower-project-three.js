@@ -7,10 +7,17 @@ export class StuckSystem {
         this.timer = 0;
         this.lastPosition = new THREE.Vector3();
         this.button = null;
+        this.isPaused = false;
+    }
+
+    setPaused(paused) {
+        this.isPaused = paused;
+        if (paused) this.removeButton();
     }
 
     update(delta) {
-        // Track movement
+        if (this.isPaused) return; // Stop logic while paused
+
         if (this.mower.position.distanceTo(this.lastPosition) < 0.01) {
             this.timer += delta;
         } else {
@@ -19,7 +26,6 @@ export class StuckSystem {
         }
         this.lastPosition.copy(this.mower.position);
 
-        // Show button if stuck for 5 seconds
         if (this.timer > 5 && !this.button) {
             this.createButton();
         }
@@ -30,9 +36,8 @@ export class StuckSystem {
         this.button.id = "reset-btn";
         this.button.innerText = "RESET POSITION";
         this.button.style.position = "absolute";
-        this.button.style.top = "20%";
-        this.button.style.left = "50%";
-        this.button.style.transform = "translateX(-50%)";
+        this.button.style.bottom = "20px"; // Positioned bottom-left
+        this.button.style.left = "20px";   // Positioned bottom-left
         this.button.style.padding = "15px 30px";
         this.button.style.zIndex = "10000";
         

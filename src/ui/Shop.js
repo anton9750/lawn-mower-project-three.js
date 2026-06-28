@@ -2,6 +2,8 @@ export class Shop {
     constructor(game, onColorChange) {
         this.game = game;
         this.onColorChange = onColorChange;
+        this.onOpen = null;  // Added hook
+        this.onClose = null; // Added hook
         this.colors = [
             { name: 'Blue', price: 200, hex: 0x0000ff },
             { name: 'Red', price: 500, hex: 0xff0000 },
@@ -14,14 +16,25 @@ export class Shop {
 
     open() {
         if (document.getElementById('shop-container')) return;
+        if (this.onOpen) this.onOpen(); // Trigger pause
 
         const container = document.createElement('div');
         container.id = 'shop-container';
+        container.style.position = "absolute";
+        container.style.top = "50%";
+        container.style.left = "50%";
+        container.style.transform = "translate(-50%, -50%)";
+        container.style.zIndex = "10000";
+        container.style.background = "white";
+        container.style.padding = "20px";
+        container.style.border = "2px solid black";
+        
         container.innerHTML = '<h3>Mower Shop</h3>';
         
         const closeBtn = document.createElement('div');
         closeBtn.id = 'shop-close';
         closeBtn.innerText = 'X';
+        closeBtn.style.cursor = "pointer";
         closeBtn.onclick = () => this.close();
         container.appendChild(closeBtn);
 
@@ -49,5 +62,6 @@ export class Shop {
     close() {
         const container = document.getElementById('shop-container');
         if (container) container.remove();
+        if (this.onClose) this.onClose(); // Trigger resume
     }
 }

@@ -43,10 +43,17 @@ export class LawnMower {
 
         if (direction.length() > 0) {
             direction.normalize();
-            this.position.x += direction.x * this.speed * delta;
-            this.position.z += direction.y * this.speed * delta;
+            
+            // Speed boost: 3x speed while holding 'N'
+            const boost = input.isPressed('KeyN') ? 3 : 1;
+            const currentSpeed = this.speed * boost;
+
+            this.position.x += direction.x * currentSpeed * delta;
+            this.position.z += direction.y * currentSpeed * delta;
+            
             const targetRotation = Math.atan2(direction.x, direction.y);
             this.mesh.rotation.y += (targetRotation - this.mesh.rotation.y) * 0.2;
+            
             if (!this.isMoving) {
                 this.sound.play().catch(e => console.log("Mower audio pending..."));
                 this.isMoving = true;
