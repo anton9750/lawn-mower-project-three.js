@@ -3,7 +3,8 @@ import * as THREE from 'three';
 export class LawnMower {
     constructor() {
         this.mesh = new THREE.Group();
-        this.speed = 5;
+        this.baseSpeed = 5;
+        this.speed = this.baseSpeed;           // starts at 5, will be upgraded
         this.position = new THREE.Vector3(0, 0.25, 0);
 
         const body = new THREE.Mesh(
@@ -14,7 +15,6 @@ export class LawnMower {
         this.mesh.add(body);
         this.createHandle();
 
-        // Ensure this points to public/sounds/mower.mp3
         this.sound = new Audio('./sounds/mower.mp3');
         this.sound.loop = true;
         this.isMoving = false;
@@ -44,7 +44,7 @@ export class LawnMower {
         if (direction.length() > 0) {
             direction.normalize();
             
-            // Speed boost: 3x speed while holding 'N'
+            // Speed boost (N key) + current mower speed (upgrades)
             const boost = input.isPressed('KeyN') ? 3 : 1;
             const currentSpeed = this.speed * boost;
 

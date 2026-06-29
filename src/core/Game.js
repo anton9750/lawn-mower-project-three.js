@@ -34,20 +34,25 @@ export class Game {
         this.hud = new HUD();
         this.weather = new WeatherSystem(this.sceneManager.scene, this.camera.instance);
         
-        // Initialize StuckSystem with a reset callback
+        // Stuck system + pause/resume hooks
         this.stuckSystem = new StuckSystem(this.mower, () => {
             this.mower.position.set(0, 0.25, 0);
             this.mower.mesh.position.set(0, 0.25, 0);
         });
         
-        // Initialize Shop with color change logic
+        // === SHOP WITH COLOR + SPEED UPGRADES ===
         this.shop = new Shop(this, (hex) => {
             if (this.mower.mesh) {
-                this.mower.mesh.traverse((child) => { if (child.isMesh) child.material.color.setHex(hex); });
+                this.mower.mesh.traverse((child) => { 
+                    if (child.isMesh) child.material.color.setHex(hex); 
+                });
             }
+        }, (mult) => { 
+            // Speed upgrade callback
+            this.mower.speed = mult; 
         });
 
-        // Bridge: Connect Shop UI state to StuckSystem
+        // Bridge: connect shop to stuck system
         this.shop.onOpen = () => this.stuckSystem.setPaused(true);
         this.shop.onClose = () => this.stuckSystem.setPaused(false);
 
@@ -64,11 +69,15 @@ export class Game {
         });
 
         this.joystick = createJoystick();
-        this.joystick.on('move', (evt, data) => { if (data?.vector) this.input.setJoystick(data.vector.x, data.vector.y); });
+        this.joystick.on('move', (evt, data) => { 
+            if (data?.vector) this.input.setJoystick(data.vector.x, data.vector.y); 
+        });
         this.joystick.on('end', () => this.input.setJoystick(0, 0));
 
         this.update = this.update.bind(this);
-        document.addEventListener('click', () => { if (this.bgMusic && !this.bgMusic.isPlaying) this.bgMusic.play(); }, { once: true });
+        document.addEventListener('click', () => { 
+            if (this.bgMusic && !this.bgMusic.isPlaying) this.bgMusic.play(); 
+        }, { once: true });
     }
 
     createShopButton() {
@@ -91,8 +100,12 @@ export class Game {
 
         this.isNight = !this.isNight;
         this.sceneManager.setTheme(this.isNight);
-        if (this.isNight) { this.weather.addMoon(); this.weather.addRain(); } 
-        else { this.weather.addClouds(); }
+        if (this.isNight) { 
+            this.weather.addMoon(); 
+            this.weather.addRain(); 
+        } else { 
+            this.weather.addClouds(); 
+        }
 
         const isSecret = (this.coinSystem.multiplier === 2);
         const size = isSecret ? 25 : Math.floor(Math.random() * 6) + 15;
@@ -131,7 +144,6 @@ export class Game {
             this.sceneManager.add(this.vortex.group);
             if (this.fence) this.fence.removeSegment(0); 
         } else {
-            // Secret stage completed: 200 coins
             this.coinSystem.addCoins(200);
             this.coinSystem.multiplier = 1;
             this.showNextButton();
@@ -185,7 +197,6 @@ export class Game {
         } else if (this.vortex) {
             this.mower.update(delta, this.input);
             if (this.mower.position.distanceTo(this.vortex.group.position) < 2) {
-                // Regular stage completed: 100 coins
                 this.coinSystem.addCoins(100);
                 this.coinSystem.incrementStages();
                 this.coinSystem.multiplier = 2;
