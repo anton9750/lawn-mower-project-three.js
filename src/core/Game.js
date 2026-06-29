@@ -180,7 +180,7 @@ export class Game {
         const isSecret = (this.coinSystem.multiplier === 2);
         const size = isSecret ? 25 : Math.floor(Math.random() * 6) + 15;
 
-        const treeCount = Math.floor(Math.random() * 6) + 5;
+        const treeCount = Math.floor(Math.random() * 6) + 10;
 
         this.trees = [];
         const treePositions = [];
