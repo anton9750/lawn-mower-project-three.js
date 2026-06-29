@@ -291,7 +291,7 @@ export class Game {
             this.mower.update(delta, this.input);
 
             this.collisionSystem.constrain(this.mower.position);
-            this.grassCuttingSystem.update(this.mower.position);
+          this.grassCuttingSystem.update(this.mower.position);
 
             this.scoreSystem.update();
             this.hud.update(this.scoreSystem.getPercentage(), this.coinSystem.coins);
