@@ -1,4 +1,3 @@
-// src/entities/Tree.js
 import * as THREE from 'three';
 
 export const TreeType = {
@@ -14,6 +13,12 @@ export class Tree {
         this.type = type;
         this.group = new THREE.Group();
         this.group.position.set(x, 0.5, z);
+        
+        // --- RANDOM SCALE LOGIC ---
+        // Generates a random scale between 0.4 and 0.8
+        const randomScale = Math.random() * (0.8 - 0.4) + 0.4;
+        this.group.scale.set(randomScale, randomScale, randomScale);
+        
         this.createTree();
     }
 
@@ -22,7 +27,6 @@ export class Tree {
         const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5c4033 });
 
         if (this.type === TreeType.WILLOW || this.type === TreeType.YEW) {
-            // Willows & Yews - proper curved trunk
             const trunk = new THREE.Mesh(
                 new THREE.CylinderGeometry(0.2, 0.22, 1.8, 8),
                 trunkMat
@@ -30,7 +34,6 @@ export class Tree {
             trunk.rotation.x = -0.55;
             this.group.add(trunk);
 
-            // Foliage now sits correctly on top
             const foliage = new THREE.Mesh(
                 new THREE.ConeGeometry(1.1, 2.6, 8),
                 new THREE.MeshStandardMaterial({ color: 0x228B22 })
